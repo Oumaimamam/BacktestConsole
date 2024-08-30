@@ -11,50 +11,143 @@ using PricingLibrary.TimeHandler;
 using PricingLibrary.Utilities;
 using System.Security.Cryptography.X509Certificates;
 using System.Runtime.Serialization.Json;
+using System.Globalization;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using CsvHelper;
+using System.Reflection.PortableExecutable;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Reflection.Metadata.Ecma335;
 
 namespace BacktestConsole
 {
-    class Program
+    class  Program
     {
         static void Main(string[] args)
         {
-            var testParams = SampleTestParameters.Sample();
-            var marketData = SampleMarketData.Sample();
-            var results = RunBacktest(testParams, marketData);
-            //affichage des résultats
-            foreach (var result in results)
+            var BasketTestParameters = LoadTestParameters(@"C:\Users\localuser\Downloads\systematic-strategies-net-main\systematic-strategies-net-main\Resources\TestData\Test_1_1\params_1_1.json");
+            var lstDF = ConstructDataFeed(@"C:\Users\localuser\Downloads\systematic-strategies-net-main\systematic-strategies-net-main\Resources\TestData\Test_1_1\data_1_1.csv");
+            List<OutputData> results = BackTest(BasketTestParameters, lstDF);
+
+            ////affichage des résultats
+            foreach (OutputData result in results)
             {
-                Console.WriteLine(result);
+                Console.WriteLine($"{result.Date}, {result.Value}"); 
             }
-            SaveResultsToFile(results, "output_file.json");
+
+            /*// Sauvegarde des résultats dans un fichier JSON
+            SaveResultsToFile(results, "output_file.json");*/
         }
-        static List<OutputData> RunBacktest(BasketTestParameters testParams, IEnumerable<ShareValue> marketData)
-        {
-            var results = new List<OutputData>();
-            double portfolioValue = 1000;
-            var weights = testParams.BasketOption.Weights;
-            foreach (var data in marketData)
-            {
-                double newPortfolioValue = 0;
-                for (int i=0; i < data.Count; i++) 
-                {
-                    newPortfolioValue += portfolioValue * weights[i] * portfolioValue;
-                }
-                portfolioValue = newPortfolioValue;
-                results.Add(new OutputData
-                {
-                    Date = data.Date,
-                    PortfolioValue = portfolioValue
-                });
-            }
-            return results;
-        }
+
         static void SaveResultsToFile(List<OutputData> results, string filePath)
         {
-            var jsonOptions = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
-            var json = JsonConvert.SerializeObject(results, jsonOptions);
-            File.WriteAllText(filePath, json);
+            var options = new JsonSerializerOptions()
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Converters = { new JsonStringEnumConverter(), new RebalancingOracleDescriptionConverter() }
+            };
+            var jsonString = JsonSerializer.Serialize(results, options);
+            File.WriteAllText(filePath, jsonString);
         }
+        static BasketTestParameters LoadTestParameters(string JsonPath)
+        {
+            var json = File.ReadAllText(JsonPath);
+            var options = new JsonSerializerOptions()
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                Converters = { new JsonStringEnumConverter(), new RebalancingOracleDescriptionConverter() }
+            };
+            return JsonSerializer.Deserialize<BasketTestParameters>(json, options);
+        }
+
+        static List<DataFeed> ConstructDataFeed(string FileCsv)
+        {
+            //Csv parameters
+            IEnumerable<ShareValue> shareEnum;
+            using (var reader = new StreamReader(FileCsv))
+            using (var csv = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                shareEnum = csv.GetRecords<ShareValue>().ToList();
+            }
+            var dataFeeds = shareEnum.GroupBy(d => d.DateOfPrice,
+                         t => new { Symb = t.Id.Trim(), Val = t.Value },
+                         (key, g) => new DataFeed(key, g.ToDictionary(e => e.Symb, e => e.Val))).ToList();
+            return dataFeeds;
+        }
+
+        static List<OutputData> BackTest ( BasketTestParameters Testparameters, List<DataFeed> lstDF)
+        {
+            //Composition portefeuille en t0
+            List<OutputData> results = new List<OutputData>();
+            OutputData output = new OutputData();
+            Dictionary<string, double> spotsDict = lstDF[0].PriceList;
+            double[] spots = spotsDict.Values.ToArray();
+            Pricer pricer = new Pricer(Testparameters);
+            DateTime date_0 = lstDF[0].Date;
+            PricingResults result = pricer.Price(date_0, spots);
+            double p0 = result.Price;
+
+            double[] deltas = result.Deltas;
+            double cash = p0;
+
+            for (int i = 0; i < spots.Length; i++)
+            {
+                cash -= deltas[i] * spots[i];
+            }
+            output.Date = date_0;
+            output.Value = cash;
+            results.Add(output);
+
+
+            var deltas_prec = deltas;
+            double val_curr = 0;
+            double cash_prec = cash;
+            DateTime date_prec = date_0;
+
+            for (int i = 1; i < lstDF.Count; i++)
+            {
+                DataFeed datafeed = lstDF[i];
+                spots = datafeed.PriceList.Values.ToArray();
+
+                result = pricer.Price(datafeed.Date, spots);
+                double price = result.Price;
+                var deltas_curr = result.Deltas;
+
+                for (int j = 0; j < spots.Length; j++)
+                {
+                    val_curr = deltas_prec[j] * spots[j];
+                }
+                double capitalisation = RiskFreeRateProvider.GetRiskFreeRateAccruedValue(date_prec, datafeed.Date);
+                val_curr += cash_prec * capitalisation;
+                var cash_curr = val_curr;
+
+                for (int k = 0; k < spots.Length; k++)
+                {
+                    cash_curr -=  deltas_curr[k] * spots[k];
+                }
+                deltas_prec = deltas_curr;
+                cash_prec = cash_curr;
+                date_prec = datafeed.Date;
+
+               
+                
+                var outputs = new OutputData();
+                outputs.Date = datafeed.Date;
+                outputs.Value = cash_curr;
+                results.Add(outputs);
+
+            }
+            return results;
+
+
+
+
+        }   
+
+
+
+
+
     }
 
 }
