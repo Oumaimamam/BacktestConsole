@@ -1,23 +1,14 @@
 ﻿using BacktestConsole.ParsingTools;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.IO;
 using PricingLibrary.Computations;
 using PricingLibrary.DataClasses;
 using PricingLibrary.MarketDataFeed;
 using PricingLibrary.RebalancingOracleDescriptions;
-using PricingLibrary.TimeHandler;
-using PricingLibrary.Utilities;
-using System.Security.Cryptography.X509Certificates;
-using System.Runtime.Serialization.Json;
 using System.Globalization;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using CsvHelper;
-using System.Reflection.PortableExecutable;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Reflection.Metadata.Ecma335;
 
 namespace BacktestConsole
 {
@@ -25,18 +16,21 @@ namespace BacktestConsole
     {
         static void Main(string[] args)
         {
-            var BasketTestParameters = LoadTestParameters(@"C:\Users\localuser\Downloads\systematic-strategies-net-main\systematic-strategies-net-main\Resources\TestData\Test_1_1\params_1_1.json");
-            var lstDF = ConstructDataFeed(@"C:\Users\localuser\Downloads\systematic-strategies-net-main\systematic-strategies-net-main\Resources\TestData\Test_1_1\data_1_1.csv");
+            //var BasketTestParameters = LoadTestParameters(@"C:\Users\localuser\Downloads\systematic-strategies-net-main\systematic-strategies-net-main\Resources\TestData\Test_5_2\params_5_1.json");
+            //var lstDF = ConstructDataFeed(@"C:\Users\localuser\Downloads\systematic-strategies-net-main\systematic-strategies-net-main\Resources\TestData\Test_5_1\data_5_1.csv");
+            var BasketTestParameters = LoadTestParameters(@"C:\Users\oumai\Downloads\TestData\Test_1_1\params_1_1.json");
+            var lstDF = ConstructDataFeed(@"C:\Users\oumai\Downloads\TestData\Test_1_1\data_1_1.csv");
+
             List<OutputData> results = BackTest(BasketTestParameters, lstDF);
 
             ////affichage des résultats
             foreach (OutputData result in results)
             {
-                Console.WriteLine($"{result.Date}, {result.Value}"); 
+                Console.WriteLine($"{result.Date}, {result.Value}, {result.Price}"); 
             }
 
-            /*// Sauvegarde des résultats dans un fichier JSON
-            SaveResultsToFile(results, "output_file.json");*/
+            // Sauvegarde des résultats dans un fichier JSON
+            SaveResultsToFile(results, @"C:\Users\oumai\Downloads\output_file.json");
         }
 
         static void SaveResultsToFile(List<OutputData> results, string filePath)
@@ -44,11 +38,13 @@ namespace BacktestConsole
             var options = new JsonSerializerOptions()
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                WriteIndented = true, // Cette option permet d'indenter le JSON
                 Converters = { new JsonStringEnumConverter(), new RebalancingOracleDescriptionConverter() }
             };
             var jsonString = JsonSerializer.Serialize(results, options);
             File.WriteAllText(filePath, jsonString);
         }
+
         static BasketTestParameters LoadTestParameters(string JsonPath)
         {
             var json = File.ReadAllText(JsonPath);
@@ -95,9 +91,9 @@ namespace BacktestConsole
                 cash -= deltas[i] * spots[i];
             }
             output.Date = date_0;
-            output.Value = cash;
+            output.Value = p0;
+            output.Price = p0;
             results.Add(output);
-
 
             var deltas_prec = deltas;
             double val_curr = 0;
@@ -129,25 +125,14 @@ namespace BacktestConsole
                 cash_prec = cash_curr;
                 date_prec = datafeed.Date;
 
-               
-                
                 var outputs = new OutputData();
                 outputs.Date = datafeed.Date;
-                outputs.Value = cash_curr;
+                outputs.Value = val_curr;
+                outputs.Price = price;
                 results.Add(outputs);
 
             }
             return results;
-
-
-
-
-        }   
-
-
-
-
-
+        }
     }
-
 }
