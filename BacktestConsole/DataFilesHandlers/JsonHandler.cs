@@ -3,7 +3,7 @@ using PricingLibrary.RebalancingOracleDescriptions;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 
-namespace BacktestConsole.ParsingTools
+namespace BacktestConsole.DataFilesHandlers
 {
     public class JsonHandler
     {

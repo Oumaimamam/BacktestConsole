@@ -1,41 +1,34 @@
 ﻿using PricingLibrary.MarketDataFeed;
-using System;
-using System.Collections.Generic;
 
 namespace BacktestConsole.HedgingStrategyBacktest
 {
     internal class Portfolio
     {
-        private Dictionary<string, double> Composition;
-        private double Cash;
-        private DateTime PreviousRebalancingDate;
+        public Dictionary<string, double> Composition { get; private set; }
+        public double Cash { get; private set; }
+        public DateTime PreviousRebalancingDate { get; private set; }
 
-        public Dictionary<string, double> GetComposition()
+        public Portfolio(Dictionary<string, double> composition, DataFeed dataFeed, double initialValue)
         {
-            return Composition;
-        }
-        public Portfolio(Dictionary<string, double> Composition, DataFeed DataFeed, double Cash)
-        {
-
-            this.Composition = Composition;
-            this.Cash = Cash;
-            this.PreviousRebalancingDate = DataFeed.Date;
+            Composition = composition;
+            Cash = initialValue - DictionaryUtils.ScalarProduct(composition, dataFeed.PriceList);
+            PreviousRebalancingDate = dataFeed.Date;
         }
 
-        public double ComputeValue(DataFeed DataFeed)
+        public double ComputeValue(DataFeed dataFeed)
         {
-            Dictionary<string, double> Spots = DataFeed.PriceList;
-            double capitalisation = RiskFreeRateProvider.GetRiskFreeRateAccruedValue( PreviousRebalancingDate, DataFeed.Date);
+            Dictionary<string, double> spots = dataFeed.PriceList;
+            double capitalisation = RiskFreeRateProvider.GetRiskFreeRateAccruedValue( PreviousRebalancingDate, dataFeed.Date);
             double Value = Cash * capitalisation;
-            Value += DictionaryUtils.ScalarProduct(Composition, Spots);
+            Value += DictionaryUtils.ScalarProduct(Composition, spots);
             return Value;
         }
 
-        public void UpdatePortfolio(Dictionary<string, double> NewComposition, DataFeed DataFeed)
+        public void UpdatePortfolio(Dictionary<string, double> NewComposition, DataFeed dataFeed)
         {
-            Cash = ComputeValue(DataFeed) - DictionaryUtils.ScalarProduct(NewComposition, DataFeed.PriceList);
+            Cash = ComputeValue(dataFeed) - DictionaryUtils.ScalarProduct(NewComposition, dataFeed.PriceList);
             Composition = NewComposition;
-            PreviousRebalancingDate = DataFeed.Date;
+            PreviousRebalancingDate = dataFeed.Date;
         } 
     }
 }

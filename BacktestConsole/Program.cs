@@ -1,5 +1,5 @@
 ﻿using PricingLibrary.DataClasses;
-using BacktestConsole.ParsingTools;
+using BacktestConsole.DataFilesHandlers;
 using BacktestConsole.HedgingStrategyBacktest;
 namespace BacktestConsole
 {
@@ -13,22 +13,15 @@ namespace BacktestConsole
             string OutputFile = args[2];
 
             JsonHandler JsonHandler = new JsonHandler();
-            ParserCsv ParserCsv = new ParserCsv();
-            RebalacingStrategy RebalancingStrategy = new RebalacingStrategy();
+            CsvParser CsvParser = new CsvParser();
+            
             var BasketTestParameters = JsonHandler.LoadTestParameters(TestParamsFile);
-            var LstDF = ParserCsv.ConstructDataFeedFromCsv(MktDataFile);
-            List<OutputData> Results = RebalancingStrategy.RegularRebalacingStrategy(BasketTestParameters, LstDF);
-
-            /*affichage des résultats*/
-            foreach (OutputData result in Results)
-            {
-                Console.WriteLine($"{result.Date}, {result.Value}, {result.Price}"); 
-            }
+            var LstDF = CsvParser.ConstructDataFeedFromCsv(MktDataFile);
+            RebalancingStrategy RebalancingStrategy = new RebalancingStrategy(BasketTestParameters, LstDF);
+            List<OutputData> Results = RebalancingStrategy.RegularRebalancingStrategy();
 
             /*Sauvegarde des résultats dans un fichier JSON*/
             JsonHandler.SaveResultsToFile(Results, OutputFile);
         }
-
-
     }
 }

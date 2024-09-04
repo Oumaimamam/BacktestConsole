@@ -2,9 +2,9 @@
 using PricingLibrary.MarketDataFeed;
 using System.Globalization;
 
-namespace BacktestConsole.ParsingTools
+namespace BacktestConsole.DataFilesHandlers
 {
-    public class ParserCsv
+    public class CsvParser
     {
         public List<DataFeed> ConstructDataFeedFromCsv(string FileCsv)
         {
