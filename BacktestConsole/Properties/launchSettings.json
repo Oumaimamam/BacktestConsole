@@ -2,7 +2,7 @@
   "profiles": {
     "BacktestConsole": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\localuser\\TestData\\Test_1_1\\params_1_1.json\"\r\n\"C:\\Users\\localuser\\TestData\\Test_1_1\\data_1_1.csv\"\r\n\"C:\\Users\\localuser\\OutputFile.json\""
+      "commandLineArgs": "\"C:\\Users\\localuser\\TestData\\Test_5_1\\params_5_1.json\"\r\n\"C:\\Users\\localuser\\TestData\\Test_5_1\\data_5_1.csv\"\r\n\"C:\\Users\\localuser\\OutputFile.json\""
     },
     "WSL": {
       "commandName": "WSL2",
