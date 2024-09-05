@@ -1,53 +1,44 @@
-﻿using GrpcBacktestServer.Protos;
-using BacktestConsoleLibrary.HedgingStrategyBacktest;
-using BacktestConsoleLibrary.DataFilesHandlers;
-using Grpc.Core;
-using System.Threading.Tasks;
+﻿using Grpc.Core;
+using GrpcBacktestServer.Protos;
 
 namespace GrpcBacktestServer.Services
 {
     public class BacktestService : BacktestRunner.BacktestRunnerBase
     {
-        private readonly RebalancingStrategy _rebalancingStrategy;
-        private readonly JsonHandler _jsonHandler;
-        private readonly CsvParser _csvParser;
-
-        // Constructor where we initialize the objects from the library
-        public BacktestService()
+        public override Task<BacktestOutput> RunBacktest(BacktestRequest request, ServerCallContext context)
         {
-            // Assuming you have some default parameters for JsonHandler and CsvParser
-            _jsonHandler = new JsonHandler();
-            _csvParser = new CsvParser();
-        }
+            var testParams = request.TstParams;
+            var dataParams = request.Data;
 
-        public override async Task<BacktestOutput> RunBacktest(BacktestRequest request, ServerCallContext context)
-        {
-            // Load the test parameters from the request
-            var testParams = _jsonHandler.LoadTestParameters(request.TstParams);
-            var marketData = _csvParser.ConstructDataFeedFromCsv(request.Data.CsvFilePath);
-
-            // Initialize the strategy with test parameters and market data
-            var rebalancingStrategy = new RebalancingStrategy(testParams, marketData);
-
-            // Run the backtest (you might need to modify this depending on your library’s structure)
-            var results = rebalancingStrategy.RegularRebalancingStrategy();
-
-            // Prepare the response
-            var response = new BacktestOutput();
-            foreach (var result in results)
+            if (request.RebParams.Regular != null)
             {
-                response.BacktestInfo.Add(new BacktestInfo
-                {
-                    Date = Google.Protobuf.WellKnownTypes.Timestamp.FromDateTime(result.Date.ToUniversalTime()),
-                    PortfolioValue = result.Value,
-                    Price = result.Price,
-                    DeltaStdDev = result.DeltasStdDev,
-                    PriceStdDev = result.PriceStdDev,
-                    Delta = { result.Deltas }
-                });
+                // regular rebalancing
+                var period = request.RebParams.Regular.Period;
+                Console.WriteLine($"Regular rebalancing with period: {period}");
+
+                // Perform your backtest logic for regular rebalancing here
+                // You may need to adjust your strategy based on the period value
+            }
+            else if (request.RebParams.Weekly != null)
+            {
+                // Handle weekly rebalancing
+                var dayOfWeek = request.RebParams.Weekly.Day;
+                Console.WriteLine($"Weekly rebalancing on: {dayOfWeek}");
+
+                // Perform your backtest logic for weekly rebalancing here
+            }
+            else
+            {
+                // Handle case where no valid rebalancing type is provided
+                throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid rebalancing type provided"));
             }
 
-            return await Task.FromResult(response);
+            var output = new BacktestOutput
+            {
+                // Populate with the actual backtest result data
+            };
+
+            return Task.FromResult(output);
         }
     }
 }
