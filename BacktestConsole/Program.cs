@@ -1,6 +1,10 @@
-﻿using PricingLibrary.DataClasses;
-using BacktestConsole.DataFilesHandlers;
-using BacktestConsole.HedgingStrategyBacktest;
+﻿//using PricingLibrary.DataClasses;
+//using BacktestConsole.DataFilesHandlers;
+//using BacktestConsole.HedgingStrategyBacktest;
+using BacktestConsoleLibrary.HedgingStrategyBacktest;
+using BacktestConsoleLibrary.DataFilesHandlers;
+using PricingLibrary.DataClasses;
+
 namespace BacktestConsole
 {
     static class  Program
@@ -12,16 +16,16 @@ namespace BacktestConsole
             string MktDataFile = args[1];
             string OutputFile = args[2];
 
-            JsonHandler JsonHandler = new JsonHandler();
-            CsvParser CsvParser = new CsvParser();
+            JsonHandler jsonHandler = new JsonHandler();
+            CsvParser csvParser = new CsvParser();
             
-            var BasketTestParameters = JsonHandler.LoadTestParameters(TestParamsFile);
-            var LstDF = CsvParser.ConstructDataFeedFromCsv(MktDataFile);
-            RebalancingStrategy RebalancingStrategy = new RebalancingStrategy(BasketTestParameters, LstDF);
-            List<OutputData> Results = RebalancingStrategy.RegularRebalancingStrategy();
+            var BasketTestParameters = jsonHandler.LoadTestParameters(TestParamsFile);
+            var LstDF = csvParser.ConstructDataFeedFromCsv(MktDataFile);
+            RebalancingStrategy rebalancingStrategy = new RebalancingStrategy(BasketTestParameters, LstDF);
+            List<OutputData> Results = rebalancingStrategy.RegularRebalancingStrategy();
 
             /*Sauvegarde des résultats dans un fichier JSON*/
-            JsonHandler.SaveResultsToFile(Results, OutputFile);
+            jsonHandler.SaveResultsToFile(Results, OutputFile);
         }
     }
 }
