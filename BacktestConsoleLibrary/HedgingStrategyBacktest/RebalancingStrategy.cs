@@ -47,9 +47,6 @@ namespace BacktestConsoleLibrary.HedgingStrategyBacktest
             OutputData output = CreateOutputData(date, result, result.Price);
             results.Add(output);
 
-            RegularOracleDescription RegularOracle = (RegularOracleDescription)Testparameters.RebalancingOracleDescription;
-            int period = RegularOracle.Period;
-
             for (int i = period; i < LstDF.Count; i += period)
             {
                 dataFeed = LstDF[i];
