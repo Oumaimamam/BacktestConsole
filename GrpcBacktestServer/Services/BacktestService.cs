@@ -1,5 +1,11 @@
 ﻿using Grpc.Core;
 using GrpcBacktestServer.Protos;
+using PricingLibrary.DataClasses;
+using PricingLibrary.Utilities;
+using PricingLibrary.MarketDataFeed;
+using PricingLibrary.DataClasses;
+using PricingLibrary.Computations;
+using BacktestConsoleLibrary.HedgingStrategyBacktest;
 
 namespace GrpcBacktestServer.Services
 {
@@ -10,32 +16,22 @@ namespace GrpcBacktestServer.Services
             var testParams = request.TstParams;
             var dataParams = request.Data;
 
-            if (request.RebParams.Regular != null)
+            if (testParams.RebParams.Regular != null)
             {
                 // regular rebalancing
-                var period = request.RebParams.Regular.Period;
+                var period = testParams.RebParams.Regular.Period;
                 Console.WriteLine($"Regular rebalancing with period: {period}");
 
                 // Perform your backtest logic for regular rebalancing here
                 // You may need to adjust your strategy based on the period value
-            }
-            else if (request.RebParams.Weekly != null)
-            {
-                // Handle weekly rebalancing
-                var dayOfWeek = request.RebParams.Weekly.Day;
-                Console.WriteLine($"Weekly rebalancing on: {dayOfWeek}");
+                RebalancingStrategy rebalancingStrategy = new RebalancingStrategy(testParams, LstDF);
+                List<OutputData> Results = rebalancingStrategy.RegularRebalancingStrategy(period);
 
-                // Perform your backtest logic for weekly rebalancing here
-            }
-            else
-            {
-                // Handle case where no valid rebalancing type is provided
-                throw new RpcException(new Status(StatusCode.InvalidArgument, "Invalid rebalancing type provided"));
             }
 
             var output = new BacktestOutput
             {
-                // Populate with the actual backtest result data
+                output.Date  = DateTime.Now.ToString("yyyy-MM-dd"),
             };
 
             return Task.FromResult(output);

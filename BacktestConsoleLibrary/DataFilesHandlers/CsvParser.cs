@@ -18,7 +18,7 @@ namespace BacktestConsoleLibrary.DataFilesHandlers
             /*Création de DataFeed pour chaque date*/
             var DataFeeds = ShareEnum.GroupBy(d => d.DateOfPrice,
                          t => new { Symb = t.Id.Trim(), Val = t.Value },
-                         (key, g) => new DataFeed(key, g.ToDictionary(e => e.Symb, e => e.Val))).ToList();
+                         (key, g) => new DataFeed(key, g.ToDictionary(e => e.Symb, e => e.Val))).OrderBy(df => df.Date).ToList();
             return DataFeeds;
         }
     }

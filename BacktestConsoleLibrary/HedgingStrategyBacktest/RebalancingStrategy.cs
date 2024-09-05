@@ -34,7 +34,7 @@ namespace BacktestConsoleLibrary.HedgingStrategyBacktest
             };
 
         }
-        public List<OutputData> RegularRebalancingStrategy()
+        public List<OutputData> RegularRebalancingStrategy(int period)
         {
             DataFeed dataFeed = LstDF[0];
             DateTime date = dataFeed.Date;
