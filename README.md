@@ -1,6 +1,6 @@
 # Project: Backtesting of Systematic Hedging Strategy
 
-## **1. Objective**
+## **Objective**
 
 This project involves implementing a financial application using Microsoft's **.NET** framework, designed as a decision-making tool to perform validation tests—**Backtests** and **Forward tests**—on hedging portfolios of **Basket Options**.
 
