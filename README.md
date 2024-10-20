@@ -1,12 +1,21 @@
-# Project : Backtesting of Systematic hedging strategy :
+# Project: Backtesting of Systematic Hedging Strategy
 
-**1. Objective:**
-Implementing a financial application using Microsoft **.NET** framework serving as a decision tool to make validation tests (Backtests and Forward tests) on a Basket Option hedging portfolios. 
-The software is developped in **C#** and is able to evaluate the performance of a portfolio of assets using market available data. 
-The **BacktestConsole** performs the backtest and outputs the hedging portfolio prices at the chosen discretization times using a dynamic rebalancing strategy. The rebalancing means that the portfolio composition is updated at each steps with new quantities (deltas) of each asset to match at best the replicated portfolio values. Deltas here are sensitivities of the options price to the moves in the underlyings. They're extracted from the **TestData**. 
-To use it : 
-'''bash
+## **1. Objective**
+
+This project involves implementing a financial application using Microsoft's **.NET** framework, designed as a decision-making tool to perform validation tests—**Backtests** and **Forward tests**—on hedging portfolios of **Basket Options**.
+
+The software, developed in **C#**, evaluates the performance of a portfolio of assets using available market data. The main components of this project include:
+
+### - **BacktestConsole:**
+
+The **BacktestConsole** performs the backtests, providing the hedging portfolio prices at selected discretization times using a dynamic rebalancing strategy. This rebalancing ensures that the portfolio composition is updated at each step with new quantities (**deltas**) for each asset to best match the replicated portfolio values.
+
+- **Deltas**: Sensitivities of the option price to movements in the underlying assets. These deltas are extracted from **TestData**.
+
+#### **Usage:**
+
+```bash
 BacktestConsole.exe <test-params> <mkt-data> <output-file>
-'''
+```
 The **gRPC** tool allows client(**BacktestEvaluation**) - server (**BacktestServer**) communication. The client invokes the server to computate the portfolio replicating data for given test parameters and market data. The server returns a message with the computation results, and the client is invoked by the user to get the output values (prices).
 
