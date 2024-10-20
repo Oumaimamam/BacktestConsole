@@ -17,5 +17,7 @@ The **BacktestConsole** performs the backtests, providing the hedging portfolio 
 ```bash
 BacktestConsole.exe <test-params> <mkt-data> <output-file>
 ```
+
+### - **gRPCServer and BacktestEvaluation:**
 The **gRPC** tool allows client(**BacktestEvaluation**) - server (**BacktestServer**) communication. The client invokes the server to computate the portfolio replicating data for given test parameters and market data. The server returns a message with the computation results, and the client is invoked by the user to get the output values (prices).
 
